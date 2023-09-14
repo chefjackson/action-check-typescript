@@ -45,4 +45,5 @@ runs:
       with:
         node-version: 18
     - name: Main
+      shell: bash
       run: node dist/index.js --max_old_space_size=4096
