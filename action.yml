@@ -38,5 +38,5 @@ inputs:
     description: "Set true to log ts errors in base branch and pr branch"
     default: false
 runs:
-  using: "node16"
-  main: "dist/index.js"
+  using: "node18"
+  main: "dist/index.js --max_old_space_size=4096"
