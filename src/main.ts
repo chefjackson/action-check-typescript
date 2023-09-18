@@ -197,6 +197,10 @@ async function run(): Promise<void> {
       }
       info(`comment body obtained`)
 
+      if (args.debug) {
+        info(`${ansiColorsCode.cyan}[comment]: \n${JSON.stringify(comment)}`)
+      }
+
       try {
         const existingComments = await octokit.rest.issues.listComments({
           owner: context.repo.owner,
