@@ -9,12 +9,14 @@ type Input = {
   newErrorsInProject: ErrorTs[]
   errorsInModifiedFiles: ErrorTs[]
   newErrorsInModifiedFiles: ErrorTs[]
+  listAllErrors?: boolean
 }
 
 export function getBodyComment({
   errorsInProjectBefore,
   errorsInProjectAfter,
   errorsInModifiedFiles,
+  listAllErrors = true,
   newErrorsInProject,
 }: Input): string {
   const delta = errorsInProjectAfter.length - errorsInProjectBefore.length
@@ -35,7 +37,9 @@ export function getBodyComment({
     s += `**${errorsInProjectAfter.length} ts error${
       errorsInProjectAfter.length === 1 ? '' : 's'
     } detected in all the codebase 😟.**  \n`
-    s += getNbOfErrorsByFile(`Details`, errorsInProjectAfter)
+    if (listAllErrors) {
+      s += getNbOfErrorsByFile(`Details`, errorsInProjectAfter)
+    }
     s += BLANK_LINE
     s += BLANK_LINE
   }

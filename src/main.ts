@@ -51,7 +51,7 @@ async function run(): Promise<void> {
     }
 
     const execOptions = {
-      ...(args.directory ? { cwd: args.directory } : {})
+      ...(args.directory ? { cwd: args.directory } : {}),
     }
 
     const yarnLock = fs.existsSync(path.resolve(workingDir, 'yarn.lock'))
@@ -88,7 +88,7 @@ async function run(): Promise<void> {
 
     const { output: tscOutputCurrent } = await runTscCli({
       workingDir,
-      tsconfigPath
+      tsconfigPath,
     })
 
     const errorsPr = parseOutputTsc(tscOutputCurrent)
@@ -98,7 +98,7 @@ async function run(): Promise<void> {
     const ansiColorsCode = {
       magenta: '\u001b[35m',
       cyan: '\u001b[38;5;6m',
-      red: '\u001b[38;2;255;0;0m'
+      red: '\u001b[38;2;255;0;0m',
     }
 
     if (args.debug) {
@@ -114,14 +114,14 @@ async function run(): Promise<void> {
     await checkoutAndInstallBaseBranch({
       installScript,
       payload: context.payload,
-      execOptions
+      execOptions,
     })
 
     startGroup(`[base branch] compile ts files`)
 
     const { output: tscOutputBase } = await runTscCli({
       workingDir,
-      tsconfigPath
+      tsconfigPath,
     })
 
     const errorsBaseBranch = parseOutputTsc(tscOutputBase)
@@ -142,20 +142,20 @@ async function run(): Promise<void> {
       filesChanged: args.filesChanged,
       filesAdded: args.filesAdded,
       filesDeleted: args.filesDeleted,
-      lineNumbers: args.lineNumbers
+      lineNumbers: args.lineNumbers,
     })
 
     if (args.debug) {
       info(`${ansiColorsCode.cyan}Contenu de resultCompareErrors : ${JSON.stringify(resultCompareErrors)}`)
     }
 
-    const errorsInModifiedFiles = errorsPr.filter(err => {
+    const errorsInModifiedFiles = errorsPr.filter((err) => {
       return args.filesChanged.concat(args.filesAdded).includes(err.fileName)
     })
 
     info(`${errorsInModifiedFiles.length} errors in modified files`)
 
-    const newErrorsInModifiedFiles = resultCompareErrors.errorsAdded.filter(err => {
+    const newErrorsInModifiedFiles = resultCompareErrors.errorsAdded.filter((err) => {
       return args.filesChanged.concat(args.filesAdded).includes(err.fileName)
     })
 
@@ -164,12 +164,12 @@ async function run(): Promise<void> {
     endGroup()
 
     if ([OUTPUT_BEHAVIOUR.ANNOTATE, OUTPUT_BEHAVIOUR.COMMENT_AND_ANNOTATE].includes(args.outputBehaviour)) {
-      resultCompareErrors.errorsAdded.forEach(err => {
+      resultCompareErrors.errorsAdded.forEach((err) => {
         error(`${err.fileName}:${err.line}:${err.column} - ${err.message}`, {
           file: err.fileName,
           startLine: err.line,
           startColumn: err.column,
-          title: err.extraMsg ?? err.message
+          title: err.extraMsg ?? err.message,
         })
       })
     }
@@ -181,7 +181,7 @@ async function run(): Promise<void> {
 
       const commentInfo = {
         ...context.repo,
-        issue_number: issueNumber
+        issue_number: issueNumber,
       }
 
       const comment = {
@@ -191,19 +191,24 @@ async function run(): Promise<void> {
           errorsInProjectAfter: errorsPr,
           newErrorsInProject: resultCompareErrors.errorsAdded,
           errorsInModifiedFiles,
-          newErrorsInModifiedFiles
-        })
+          listAllErrors: args.listAllErrors,
+          newErrorsInModifiedFiles,
+        }),
       }
       info(`comment body obtained`)
 
       try {
-        const existingComments = await octokit.rest.issues.listComments({owner: context.repo.owner, repo: context.repo.repo, issue_number: issueNumber})
-        const existingComment = existingComments.data.find(c => !!c.body?.includes(COMMENT_TITLE))
+        const existingComments = await octokit.rest.issues.listComments({
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          issue_number: issueNumber,
+        })
+        const existingComment = existingComments.data.find((c) => !!c.body?.includes(COMMENT_TITLE))
 
         if (args.commentBehaviour === COMMENT_BEHAVIOUR.EDIT && existingComment) {
           await octokit.rest.issues.updateComment({
             comment_id: existingComment.id,
-            ...comment
+            ...comment,
           })
         } else {
           await octokit.rest.issues.createComment(comment)
@@ -218,7 +223,7 @@ async function run(): Promise<void> {
             repo: issue.repo,
             pull_number: issue.number,
             event: 'COMMENT',
-            body: comment.body
+            body: comment.body,
           })
         } catch (errCreateComment) {
           info(`Error creating PR review ${(errCreateComment as Error).message}`)
@@ -264,19 +269,18 @@ async function run(): Promise<void> {
     }
 
     if (args.useCheck) {
-      const finish = await createCheck(octokit, context, "Check ts errors")
+      const finish = await createCheck(octokit, context, 'Check ts errors')
 
       await finish({
         conclusion: shouldFailCheck ? 'failure' : 'success',
         output: {
           title: title,
-          summary: summary
-        }
+          summary: summary,
+        },
       })
     } else if (shouldFailCheck) {
       setFailed(summary)
     }
-
   } catch (errorRun) {
     setFailed((errorRun as Error).message)
   }
