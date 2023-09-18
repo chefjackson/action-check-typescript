@@ -71,7 +71,9 @@ export function getBodyComment({
     s += `**${newErrorsInProject.length} new error${newErrorsInProject.length > 1 ? 's' : ''} added** \n`
     s += `*Note : in some rare cases, new errors can be existing errors but with different locations*`
     s += BLANK_LINE
-    s += getListOfErrors(`Details`, newErrorsInProject)
+    if (listAllErrors) {
+      s += getListOfErrors(`Details`, newErrorsInProject)
+    }
     s += BLANK_LINE
   }
 
